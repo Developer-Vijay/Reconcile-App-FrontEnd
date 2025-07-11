@@ -2,38 +2,26 @@ import React, { useState } from "react";
 import FileUpload from "../components/FileUpload";
 import SummaryCard from "../components/SummaryCard";
 import ResultTable from "../components/ResultTable";
+import { reconcileTimesheets } from "../utils/reconcileLogic";
 
 export default function Home() {
   const [summary, setSummary] = useState(null);
   const [resultData, setResultData] = useState([]);
 
-  const handleReconcile = (formData) => {
-    // 👇 Simulate result data from backend
-    const dummyResult = [
-      {
-        name: "John Doe",
-        sapientHours: 160,
-        mfsHours: 152,
-        mismatch: 8,
-        email: "john@example.com",
-      },
-      {
-        name: "Raj Kumar",
-        sapientHours: 160,
-        mfsHours: 160,
-        mismatch: 0,
-        email: "raj.k@example.com",
-      },
-    ];
+  const handleReconcile = async (formData) => {
+    try {
+      const results = await reconcileTimesheets(formData);
 
-    setResultData(dummyResult);
+      setResultData(results);
 
-    // 👇 Create summary
-    const total = dummyResult.length;
-    const mismatched = dummyResult.filter((d) => d.mismatch !== 0).length;
-    const matched = total - mismatched;
-
-    setSummary({ total, matched, mismatched });
+      const total = results.length;
+      const mismatched = results.filter((d) => d.difference !== 0).length;
+      const matched = total - mismatched;
+      console.log("🔍 Final Result Data: ", results);
+      setSummary({ total, matched, mismatched });
+    } catch (err) {
+      alert("❌ Failed to process reconciliation: " + err.message);
+    }
   };
 
   const handleSendEmail = () => {

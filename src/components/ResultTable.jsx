@@ -15,9 +15,17 @@ import { saveAs } from "file-saver";
 export default function ResultTable({ data = [] }) {
   if (!data.length) return null;
 
+  // Remove Grand Total if present
+  const filteredData = data.filter(
+    (row) =>
+      row.name &&
+      row.name.toLowerCase() !== "grand total" &&
+      row.name.toLowerCase() !== "totals"
+  );
+
   // Handler to export table data to Excel
   const handleDownload = () => {
-    const exportData = data.map((row) => ({
+    const exportData = filteredData.map((row) => ({
       "Employee Name": row.name,
       "Sapient Hours": row.sapientHours,
       "MFS Hours": row.mfsHours,
@@ -61,19 +69,21 @@ export default function ResultTable({ data = [] }) {
           </tr>
         </thead>
         <tbody>
-          {data.map((entry, idx) => (
+          {filteredData.map((entry, idx) => (
             <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
               <td className="py-3 px-4 font-medium text-gray-800">
                 {entry.name}
               </td>
-              <td className="py-3 px-4">{entry.sapientHours}</td>
-              <td className="py-3 px-4">{entry.mfsHours}</td>
+              <td className="py-3 px-4">{entry.sapientHours ?? "-"}</td>
+              <td className="py-3 px-4">{entry.mfsHours ?? "-"}</td>
               <td
                 className={`py-3 px-4 font-semibold ${
-                  entry.mismatch > 0 ? "text-red-600" : "text-green-600"
+                  Math.abs(entry.mismatch) > 0.05
+                    ? "text-red-600"
+                    : "text-green-600"
                 }`}
               >
-                {entry.mismatch}
+                {entry.mismatch !== undefined ? entry.mismatch : "-"}
               </td>
               <td className="py-3 px-4 text-gray-700 text-sm">
                 {entry.email || "-"}

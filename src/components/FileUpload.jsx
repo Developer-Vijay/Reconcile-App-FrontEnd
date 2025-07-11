@@ -54,7 +54,7 @@ export default function FileUpload({ onSubmit }) {
 
       <div>
         <label className="block mb-1 font-medium">
-          Grand Total Column Index (0-based)
+          Grand Total Column Index For Sapient File (0-based)
         </label>
         <input
           type="number"
