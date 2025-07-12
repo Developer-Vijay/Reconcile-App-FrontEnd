@@ -1,30 +1,34 @@
 import React, { useState } from "react";
-import { UploadCloud } from "lucide-react"; // Optional icon library
 import FileInput from "./FileInput";
 
-export default function FileUpload({ onSubmit }) {
+export default function FileUpload({ onSubmit, loading }) {
   const [mfsFile, setMfsFile] = useState(null);
   const [sapientFile, setSapientFile] = useState(null);
   const [sapientSheet, setSapientSheet] = useState("Sheet3");
   const [grandTotalIndex, setGrandTotalIndex] = useState(25);
   const [mfsSheet, setMfsSheet] = useState("Hours By Resource");
+  const [mfsColIndex, setMfsColIndex] = useState(6);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!mfsFile || !sapientFile) {
+    if (!sapientFile || !mfsFile) {
       alert("Please upload both files.");
       return;
     }
+    if (!sapientSheet || grandTotalIndex === "") {
+      alert("Sapient sheet name and column index are required.");
+      return;
+    }
+
     onSubmit({
       mfsFile,
       sapientFile,
       sapientSheet,
       grandTotalIndex,
-      mfsSheet,
+      mfsSheet: mfsSheet || undefined,
+      mfsColIndex: mfsColIndex !== "" ? Number(mfsColIndex) : undefined,
     });
   };
-
-  <FileInput />;
 
   return (
     <form
@@ -49,6 +53,7 @@ export default function FileUpload({ onSubmit }) {
           value={sapientSheet}
           onChange={(e) => setSapientSheet(e.target.value)}
           className="w-full border p-2 rounded"
+          required
         />
       </div>
 
@@ -61,6 +66,7 @@ export default function FileUpload({ onSubmit }) {
           value={grandTotalIndex}
           onChange={(e) => setGrandTotalIndex(Number(e.target.value))}
           className="w-full border p-2 rounded"
+          required
         />
       </div>
 
@@ -74,11 +80,36 @@ export default function FileUpload({ onSubmit }) {
         />
       </div>
 
+      <div>
+        <label className="block mb-1 font-medium">
+          MFS Hours Column Index (optional, 0-based)
+        </label>
+        <input
+          type="number"
+          value={mfsColIndex}
+          onChange={(e) => setMfsColIndex(e.target.value)}
+          className="w-full border p-2 rounded"
+          placeholder="Defaults to column 6"
+        />
+      </div>
+
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+        className={`w-full py-2 rounded text-white font-semibold transition ${
+          loading
+            ? "bg-blue-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
+        }`}
+        disabled={loading}
       >
-        Reconcile
+        {loading ? (
+          <div className="flex justify-center items-center space-x-2">
+            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+            <span>Reconciling...</span>
+          </div>
+        ) : (
+          "🔍 Reconcile"
+        )}
       </button>
     </form>
   );
