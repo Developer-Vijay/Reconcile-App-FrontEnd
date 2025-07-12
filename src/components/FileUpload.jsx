@@ -11,24 +11,39 @@ export default function FileUpload({ onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!sapientFile || !mfsFile) {
+    if (!mfsFile || !sapientFile) {
       alert("Please upload both files.");
       return;
     }
-    if (!sapientSheet || grandTotalIndex === "") {
-      alert("Sapient sheet name and column index are required.");
-      return;
-    }
-
     onSubmit({
       mfsFile,
       sapientFile,
       sapientSheet,
       grandTotalIndex,
-      mfsSheet: mfsSheet || undefined,
+      mfsSheet,
       mfsColIndex: mfsColIndex !== "" ? Number(mfsColIndex) : undefined,
     });
   };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const renderFileDetails = (file, label, onRemove) => (
+    <div className="mt-2 text-sm text-gray-700">
+      ✅ {label}: {file.name} ({formatSize(file.size)})
+      <button
+        type="button"
+        className="ml-2 text-red-600 hover:underline"
+        onClick={onRemove}
+        disabled={loading}
+      >
+        Remove
+      </button>
+    </div>
+  );
 
   return (
     <form
@@ -36,15 +51,22 @@ export default function FileUpload({ onSubmit, loading }) {
       className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-md space-y-6"
     >
       <h2 className="text-2xl font-bold text-center text-gray-800">
-        🧾 Timesheet Reconciliation
+        🧾 TimeSheet Reconciliation
       </h2>
 
       <FileInput label="MFS Excel File" file={mfsFile} setFile={setMfsFile} />
+      {mfsFile &&
+        renderFileDetails(mfsFile, "MFS File", () => setMfsFile(null))}
+
       <FileInput
         label="Sapient Excel File"
         file={sapientFile}
         setFile={setSapientFile}
       />
+      {sapientFile &&
+        renderFileDetails(sapientFile, "Sapient File", () =>
+          setSapientFile(null)
+        )}
 
       <div>
         <label className="block mb-1 font-medium">Sapient Sheet Name</label>
@@ -53,20 +75,18 @@ export default function FileUpload({ onSubmit, loading }) {
           value={sapientSheet}
           onChange={(e) => setSapientSheet(e.target.value)}
           className="w-full border p-2 rounded"
-          required
         />
       </div>
 
       <div>
         <label className="block mb-1 font-medium">
-          Grand Total Column Index (0-based)
+          Grand Total Column Index For Sapient File (0-based)
         </label>
         <input
           type="number"
           value={grandTotalIndex}
           onChange={(e) => setGrandTotalIndex(Number(e.target.value))}
           className="w-full border p-2 rounded"
-          required
         />
       </div>
 
@@ -82,7 +102,7 @@ export default function FileUpload({ onSubmit, loading }) {
 
       <div>
         <label className="block mb-1 font-medium">
-          MFS Hours Column Index (optional, 0-based)
+          MFS Total Hours Column Index (optional, 0-based)
         </label>
         <input
           type="number"
@@ -95,21 +115,14 @@ export default function FileUpload({ onSubmit, loading }) {
 
       <button
         type="submit"
-        className={`w-full py-2 rounded text-white font-semibold transition ${
+        disabled={loading}
+        className={`w-full py-2 rounded text-white transition font-semibold ${
           loading
-            ? "bg-blue-400 cursor-not-allowed"
+            ? "bg-gray-400 cursor-not-allowed"
             : "bg-blue-600 hover:bg-blue-700"
         }`}
-        disabled={loading}
       >
-        {loading ? (
-          <div className="flex justify-center items-center space-x-2">
-            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-            <span>Reconciling...</span>
-          </div>
-        ) : (
-          "🔍 Reconcile"
-        )}
+        {loading ? "Reconciling..." : "Reconcile"}
       </button>
     </form>
   );
