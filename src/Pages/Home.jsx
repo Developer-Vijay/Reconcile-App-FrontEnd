@@ -9,10 +9,12 @@ export default function Home() {
   const [summary, setSummary] = useState(null);
   const [resultData, setResultData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false); // 🔴 Error flag
 
   const handleReconcile = async (formData) => {
     try {
       setIsLoading(true);
+      setHasError(false);
       toast.loading("Reconciling sheets...");
 
       const results = await reconcileTimesheets(formData);
@@ -39,6 +41,7 @@ export default function Home() {
     } catch (err) {
       toast.dismiss();
       toast.error("❌ Failed: " + err.message);
+      setHasError(true); // 🔴 trigger Retry button
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +53,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <FileUpload onSubmit={handleReconcile} loading={isLoading} />
+      <FileUpload
+        onSubmit={handleReconcile}
+        loading={isLoading}
+        hasError={hasError} // 🔁 pass to FileUpload for Retry button
+      />
 
       {summary && !isLoading && (
         <div className="mt-10 max-w-xl mx-auto">
